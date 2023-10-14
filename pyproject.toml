@@ -1,0 +1,83 @@
+# linux
+[tool.cibuildwheel.linux.environment]
+CURL_IMPERSONATE_VERSION = "0.5.4"
+CURL_VERSION = "7.84.0"
+C_INCLUDE_PATH = "/tmp/curl-impersonate-$CURL_IMPERSONATE_VERSION/build/curl-$CURL_VERSION/include"
+CURL_STATICLIB = 1
+CURL_STATIC = 1
+
+[tool.cibuildwheel.linux]
+before-all = [
+    "cd /tmp",
+    "yum update -y",
+    "yum install -y cmake3 ninja-build golang",
+    "curl -Lo curl-impersonate.tar.gz https://github.com/lwthiker/curl-impersonate/archive/refs/tags/v$CURL_IMPERSONATE_VERSION.tar.gz",
+    "tar xvf curl-impersonate.tar.gz",
+    "cd curl-impersonate-$CURL_IMPERSONATE_VERSION",
+    "mkdir build",
+    "cd build",
+    "../configure",
+    "make chrome-build",
+    "make chrome-install",
+    "ldconfig",
+    "ln -s /usr/local/bin/curl-impersonate-chrome-config /usr/local/bin/curl-config",
+]
+build = [
+    "*manylinux_x86_64*",
+]
+skip = [
+    "pp*",
+]
+
+
+# macos
+[tool.cibuildwheel.macos.environment]
+CURL_IMPERSONATE_VERSION = "0.5.4"
+CURL_VERSION = "7.84.0"
+C_INCLUDE_PATH = "/tmp/curl-impersonate-$CURL_IMPERSONATE_VERSION/build/curl-$CURL_VERSION/include"
+LDFLAGS = "-L/tmp/curl-impersonate-$CURL_IMPERSONATE_VERSION/build/boringssl/build/lib"
+CPPFLAGS = "-I/tmp/curl-impersonate-$CURL_IMPERSONATE_VERSION/build/boringssl/build/include"
+CURL_STATICLIB = 1
+CURL_STATIC = 1
+
+[tool.cibuildwheel.macos]
+before-all = [
+    "cd /tmp",
+    "rm -rf /tmp/curl-impersonate*",
+    "brew install pkg-config make cmake ninja autoconf automake libtool go openssl@3",
+    "curl -Lo curl-impersonate.tar.gz https://github.com/lwthiker/curl-impersonate/archive/refs/tags/v$CURL_IMPERSONATE_VERSION.tar.gz",
+    "tar xvf curl-impersonate.tar.gz",
+    "cd curl-impersonate-$CURL_IMPERSONATE_VERSION",
+    "mkdir build",
+    "cd build",
+    "../configure",
+    "gmake chrome-build",
+    "gmake chrome-install",
+    "rm /usr/local/bin/curl-config",
+    "ln -s /usr/local/bin/curl-impersonate-chrome-config /usr/local/bin/curl-config",
+]
+skip = [
+    "pp*",
+]
+
+[[tool.cibuildwheel.overrides]]
+# arm架构的macos调整一下脚本
+select = "*macosx_arm64*"
+before-all = [
+    "cd /tmp",
+    "rm -rf /tmp/curl-impersonate*",
+    "brew install pkg-config make cmake ninja autoconf automake libtool go openssl@3",
+    "curl -Lo curl-impersonate.tar.gz https://github.com/lwthiker/curl-impersonate/archive/refs/tags/v$CURL_IMPERSONATE_VERSION.tar.gz",
+    "tar xvf curl-impersonate.tar.gz",
+    "cd curl-impersonate-$CURL_IMPERSONATE_VERSION",
+    "mkdir build",
+    "cd build",
+    "../configure",
+    "gmake chrome-build",
+    "sudo gmake chrome-install",
+    "sudo rm -f /usr/local/bin/curl-config",
+    "sudo ln -s /usr/local/bin/curl-impersonate-chrome-config /usr/local/bin/curl-config",
+]
+skip = [
+    "pp*",
+]
